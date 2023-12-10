@@ -1,6 +1,8 @@
-import requests, time, logging as log
+import logging as log
+from selenium import webdriver
 from bs4 import BeautifulSoup
 from kivy.app import App
+
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -14,11 +16,13 @@ url = "https://www.ebay.com/sch/i.html?_nkw=xbox+one&LH_Complete=1"
 def scrape_page(url, maxPrice):
     log.info('scraping ebay page')
     try:
-        page = requests.get(url)#gets url html
+        driver = webdriver.Chrome() #uses chrome webbrowser
+        driver.get(url) #chrome loads the url
+        page = driver.page_source #assigns the source of the url to page
     except:
         log.error('url is invalid')
         return 0, None
-    s = BeautifulSoup(page.text, "html.parser")#parses the page of html through Beautiful soup to be read
+    s = BeautifulSoup(page, "html.parser")#turns the string from page into readable html
 
     listingsHead = s.find("ul", attrs={"class":"srp-results srp-list clearfix"})#finding the head list of listings in html
 
@@ -27,6 +31,7 @@ def scrape_page(url, maxPrice):
     goodListings = [] # making a list for the listings we want to look out for 
 
     for l in listings: # scraping through each listing 
+        
         id = l["id"] # getting id of the listing
         price = l.find("span", attrs={"class":"s-item__price"}).text #finding price through <span> type of html
         name = l.find("div", attrs={"class":"s-item__title"}).text #finding name through <span> type of html
