@@ -1,0 +1,41 @@
+#:kivy 2.1.0
+
+<ScrapeScreen>:
+
+    GridLayout:
+        padding:40
+        rows: 3
+        size: root.width, root.height
+        pos : 0,0
+
+        TextInput:
+            id: scrape_url
+            text: 'url'
+
+        TextInput:
+            id: max_listing_price
+            text: 'max listing price'
+
+        Button:
+            text: 'Scrape Page'
+            on_release:
+                root.scrape_page_btn()
+
+
+<ResultScreen>:
+    grid: grid
+    lsgrid:lsgrid
+
+    GridLayout:
+        id:grid
+        size:root.width, root.height
+        pos:0,0
+        cols: 2
+        padding: 20
+        spacing: 10
+        row_force_default: True
+        row_default_height: 40
+
+    GridLayout:
+        id:lsgrid
+        cols:1
