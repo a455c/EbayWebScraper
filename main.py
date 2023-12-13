@@ -1,5 +1,5 @@
 import logging as log
-from selenium import webdriver
+import urllib.request
 from bs4 import BeautifulSoup
 from kivy.app import App
 
@@ -16,23 +16,32 @@ url = "https://www.ebay.com/sch/i.html?_nkw=xbox+one&LH_Complete=1"
 def scrape_page(url, maxPrice):
     log.info('scraping ebay page')
     try:
-        driver = webdriver.Chrome() #uses chrome webbrowser
-        driver.get(url) #chrome loads the url
-        page = driver.page_source #assigns the source of the url to page
+        page = urllib.request.urlopen(url)
     except:
         log.error('url is invalid')
         return 0, None
+    
+    print(page)
+
     s = BeautifulSoup(page, "html.parser")#turns the string from page into readable html
 
+    #print(s.encode('utf-8'))
+
     listingsHead = s.find("ul", attrs={"class":"srp-results srp-list clearfix"})#finding the head list of listings in html
+
+    #print(listingsHead.encode('utf-8'))
 
     listings = listingsHead.find_all("li", attrs={"class":"s-item s-item__pl-on-bottom"})#find all the individual listings in the listing head
 
     goodListings = [] # making a list for the listings we want to look out for 
 
+    print(listings[0].encode('utf-8'))
+
     for l in listings: # scraping through each listing 
-        
-        id = l["id"] # getting id of the listing
+        try:
+            id = l['id'] # getting id of the listing
+        except:
+            continue
         price = l.find("span", attrs={"class":"s-item__price"}).text #finding price through <span> type of html
         name = l.find("div", attrs={"class":"s-item__title"}).text #finding name through <span> type of html
 
@@ -48,7 +57,7 @@ def scrape_page(url, maxPrice):
                 
         formattedPrice = ""
         for c in price:
-            if c == "$":
+            if c == "£" or c == "$" or c == "€":
                 continue
             formattedPrice = formattedPrice + c
         if float(formattedPrice) >= maxPrice: # finding the most wanted listings
@@ -72,10 +81,9 @@ class ScrapeScreen(Screen):
 
     def scrape_page_btn(self):
         print('scrape page button pressed')
+        self.ids.text = 'https://www.ebay.co.uk/sch/i.html?_from=R40&_trksid=p4432023.m570.l1313&_nkw=xbox+one&_sacat=0'
         url = self.ids.scrape_url.text
-        url = 'https://www.ebay.com/sch/i.html?_nkw=nintendo+switch&_sacat=0&rt=nc&LH_ItemCondition=7000'
         maxPrice = self.ids.max_listing_price.text
-        maxPrice = 50
         
         scrapeResult, listings = scrape_page(url, float(maxPrice))
 

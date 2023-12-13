@@ -1,8 +1,10 @@
 #:kivy 2.1.0
 
 <ScrapeScreen>:
+    grid:grid
 
     GridLayout:
+        id: grid
         padding:40
         rows: 3
         size: root.width, root.height
@@ -10,11 +12,11 @@
 
         TextInput:
             id: scrape_url
-            text: 'url'
+            text: 'https://www.ebay.co.uk/sch/i.html?_from=R40&_trksid=p4432023.m570.l1313&_nkw=xbox+one&_sacat=0'
 
         TextInput:
             id: max_listing_price
-            text: 'max listing price'
+            text: '50'
 
         Button:
             text: 'Scrape Page'
