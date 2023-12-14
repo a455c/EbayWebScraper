@@ -1,27 +1,21 @@
-import logging as log
-import urllib.request
+import logging as log, urllib.request
 from bs4 import BeautifulSoup
 from kivy.app import App
 
 from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.clock import Clock
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 
-LISTING_PRICE = 100
-
-# gets wanted url to scrape
-url = "https://www.ebay.com/sch/i.html?_nkw=xbox+one&LH_Complete=1"
-
 def scrape_page(url, maxPrice):
     log.info('scraping ebay page')
+
+    log.info("getting page")
     try:
         page = urllib.request.urlopen(url)
     except:
         log.error('url is invalid')
-        return 0, None
-    
-    print(page)
 
     s = BeautifulSoup(page, "html.parser")#turns the string from page into readable html
 
@@ -79,13 +73,13 @@ class ScrapeScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+
     def scrape_page_btn(self):
         print('scrape page button pressed')
-        self.ids.text = 'https://www.ebay.co.uk/sch/i.html?_from=R40&_trksid=p4432023.m570.l1313&_nkw=xbox+one&_sacat=0'
         url = self.ids.scrape_url.text
-        maxPrice = self.ids.max_listing_price.text
-        
-        scrapeResult, listings = scrape_page(url, float(maxPrice))
+        maxPrice = float(self.ids.max_listing_price.text)
+
+        scrapeResult, listings = scrape_page(url, maxPrice)
 
         if scrapeResult == 1:
             resultScrn = self.manager.get_screen('resultScrn')
