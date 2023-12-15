@@ -3,10 +3,13 @@ from bs4 import BeautifulSoup
 from kivy.app import App
 
 from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.config import Config
 from kivy.clock import Clock
+from kivy.uix.image import AsyncImage
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+
 
 def scrape_page(url, maxPrice):
     log.info('scraping ebay page')
@@ -55,14 +58,19 @@ def scrape_page(url, maxPrice):
                 continue
             formattedPrice = formattedPrice + c
         if float(formattedPrice) >= maxPrice: # finding the most wanted listings
-            continue                                    
+            continue               
+
+
+        imgHeader = l.find("img")
+        img_src = imgHeader['src']              
 
         # getting only the most wanted listings in a dictionary
         listing = {"id":id,
                     "name":name,
                     "price":price,
                     "type":type,
-                    "url":item_url}
+                    "url":item_url,
+                    "img": img_src}
         goodListings.append(listing) # adding wanted listings to the main list
 
 
@@ -126,19 +134,19 @@ class ResultScreen(Screen):
         self.grid.clear_widgets()
 
         l = listing
-        lt = []
         print(l)
         
-        nameLbl = Label(text=l['name'], font_size='18sp', pos_hint = {'x':.5, 'y':.1})
-        priceLbl = Label(text=str(l['price']))
-        typeLbl = Label(text =l['type'])
-        urlLbl = TextInput(text=l['url'], readonly=True, size_hint=(.3, 1))
+        nameLbl = Label(text=l['name'], font_size='18sp', pos_hint = {'x':.5, 'y':.9},size_hint=(.1, .1))
+        typeLbl = Label(text =l['type'] + "   " + str(l['price']),pos_hint = {'x':.5, 'y':.75},size_hint=(.1, .1))
+        urlLbl = TextInput(text=l['url'], readonly=True,pos_hint = {'x':0, 'y':.2}, size_hint=(.4, .5))
+        img = AsyncImage(source=l['img'],pos_hint = {'x':.5, 'y':.2},size_hint=(.4, .5))
         
-        backBtn = Button(text='BACK', pos_hint={'x':None, 'y':None}, pos = (500, 100))
+        backBtn = Button(text='BACK', size_hint=(1, .2))
         backBtn.bind(on_press=self.backBtn_callback)
-        
+
+
         self.lsgrid.add_widget(nameLbl)
-        self.lsgrid.add_widget(priceLbl)
+        self.lsgrid.add_widget(img)
         self.lsgrid.add_widget(typeLbl)
         self.lsgrid.add_widget(urlLbl)
         self.lsgrid.add_widget(backBtn)
@@ -152,6 +160,11 @@ class ScraperApp(App):
         sm.add_widget(ScrapeScreen(name='scrapeScrn'))
         sm.add_widget(ResultScreen(name='resultScrn'))
         return sm
+    
+    
+    Config.set('graphics', 'width', '1024')
+    Config.set('graphics', 'height', '768')
+    Config.write()
     
 if __name__ == "__main__":
     ScraperApp().run()
