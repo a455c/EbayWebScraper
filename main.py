@@ -46,20 +46,25 @@ def scrape_page(url, maxPrice):
         item_url = item_link["href"]
 
         type = l.find("span", attrs={"class":"s-item__bids s-item__bidCount"})
+        time = " "
         if not type :
             type = l.find("span", attrs={"class":"s-item__purchase-options s-item__purchaseOptions"}).text
         else:
             type = type.text
+            timeHead = l.find("span", attrs={"class":"s-item__time"})
+            time = l.find("span", attrs={"class":"s-item__time-left"}).text
 
                 
         formattedPrice = ""
         for c in price:
-            if c == "£" or c == "$" or c == "€":
+            if c == "£" or c == "$" or c == "€" or c==" ":
                 continue
             formattedPrice = formattedPrice + c
-        if float(formattedPrice) >= maxPrice: # finding the most wanted listings
-            continue               
-
+        try:
+            if float(formattedPrice) >= maxPrice: # finding the most wanted listings
+                continue 
+        except:
+            continue
 
         imgHeader = l.find("img")
         img_src = imgHeader['src']              
@@ -70,7 +75,8 @@ def scrape_page(url, maxPrice):
                     "price":price,
                     "type":type,
                     "url":item_url,
-                    "img": img_src}
+                    "img": img_src,
+                    "time":time}
         goodListings.append(listing) # adding wanted listings to the main list
 
 
@@ -80,6 +86,8 @@ def scrape_page(url, maxPrice):
 class ScrapeScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.scraped = False
+        Clock.schedule_interval(self.update, 120)
 
 
     def scrape_page_btn(self):
@@ -87,14 +95,30 @@ class ScrapeScreen(Screen):
         url = self.ids.scrape_url.text
         maxPrice = float(self.ids.max_listing_price.text)
 
+        self.url = url
+        self.maxPrice = maxPrice
+
         scrapeResult, listings = scrape_page(url, maxPrice)
 
         if scrapeResult == 1:
             resultScrn = self.manager.get_screen('resultScrn')
             resultScrn.get_listings(listings)
             self.manager.current = 'resultScrn'
+            self.scraped = True
         else: 
-            log.info('scrape result returned 0')
+            log.info('scrape result returned 0') 
+
+    def update(self, dt): 
+        print("updating")
+        if self.scraped == True:
+            print("scraping")
+            scrapeResult, listings = scrape_page(self.url, self.maxPrice)
+
+            if scrapeResult == 1:
+                resultScrn = self.manager.get_screen('resultScrn')
+                resultScrn.get_listings(listings)
+            else: 
+                log.info('scrape result returned 0')
 
 class ResultScreen(Screen):
     def __init__(self, **kwargs):
@@ -102,12 +126,14 @@ class ResultScreen(Screen):
 
     def get_listings(self, listings):
         log.info('getting listings')
+        self.listings = None
         self.listings = listings
         self.show_listings()
 
     def show_listings(self):
         log.info('showing listings')
         self.lsgrid.clear_widgets()
+        self.grid.clear_widgets()
         for i in range(0, len(self.listings)): 
             btn = Button(
                 text=self.listings[i]['id'], 
@@ -137,7 +163,7 @@ class ResultScreen(Screen):
         print(l)
         
         nameLbl = Label(text=l['name'], font_size='18sp', pos_hint = {'x':.5, 'y':.9},size_hint=(.1, .1))
-        typeLbl = Label(text =l['type'] + "   " + str(l['price']),pos_hint = {'x':.5, 'y':.75},size_hint=(.1, .1))
+        typeLbl = Label(text =l['type'] + "   " + str(l['price']) + "   " + l['time'], pos_hint = {'x':.5, 'y':.75},size_hint=(.1, .1))
         urlLbl = TextInput(text=l['url'], readonly=True,pos_hint = {'x':0, 'y':.2}, size_hint=(.4, .5))
         img = AsyncImage(source=l['img'],pos_hint = {'x':.5, 'y':.2},size_hint=(.4, .5))
         
