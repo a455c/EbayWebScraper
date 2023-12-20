@@ -41,6 +41,10 @@ def scrape_page(url, maxPrice):
             continue
         price = l.find("span", attrs={"class":"s-item__price"}).text #finding price through <span> type of html
         name = l.find("div", attrs={"class":"s-item__title"}).text #finding name through <span> type of html
+        #if not name.startswith("New Listing") == -1:
+        #    name = name[10:]
+          #  print(name)
+
 
         item_link = l.find("a", attrs={"class":"s-item__link"})
         item_url = item_link["href"]
@@ -68,7 +72,7 @@ def scrape_page(url, maxPrice):
 
         imgHeader = l.find("img")
         img_src = imgHeader['src']              
-
+        
         # getting only the most wanted listings in a dictionary
         listing = {"id":id,
                     "name":name,
@@ -187,7 +191,7 @@ class ScraperApp(App):
         sm.add_widget(ResultScreen(name='resultScrn'))
         return sm
     
-    
+    print("using vim currently") 
     Config.set('graphics', 'width', '1024')
     Config.set('graphics', 'height', '768')
     Config.write()
